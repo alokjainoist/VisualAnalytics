@@ -87,3 +87,7 @@ theme_set(Tufte_theme)
 #Simple chart
 ggplot(diamonds, aes(carat)) + 
   geom_freqpoly(colour = fill_color) 
+  
+  
+  
+theme_tufte(base_size = 11, base_family = "serif", ticks = TRUE)
