@@ -1,0 +1,201 @@
+#Time series analysis: Line charts are very useful to show time series 
+#The line chart is the recomended way to represent time series data, why? 
+
+#Check the data 
+names(economics)
+head(economics, n=10)
+str(economics)
+summary(economics)
+
+#1 General plot definition and theme saved in a variable
+e <-ggplot(economics, aes(date, unemploy))
+
+#Showing the different geoms for time data 
+e + geom_point() + ggtitle("point")
+e + geom_bar(stat = "identity") + ggtitle("bar")
+e + geom_area() + ggtitle("area")
+e + geom_line() + ggtitle("line") 
+
+#2 Showing trends for different categories 
+
+#Check the data 
+names(economics_long)
+head(economics_long, n=10)
+str(economics_long)
+summary(economics_long)
+
+#Check the options 
+?geom_line()
+
+#All in one chart, what is the problem?
+ggplot(economics_long, aes(date, value01, colour = variable)) +
+  geom_line() 
+
+#Changing to a small multiple 
+ggplot(economics_long, aes(date, value01)) +
+  geom_line(colour=main2_color) + 
+  facet_wrap(~variable, ncol=5) 
+
+#Changing to a small multiple - adding a reference line to make them comparable
+ggplot(economics_long, aes(date, value01)) +
+  geom_line(colour=main2_color) + 
+  facet_wrap(~variable, ncol=2) +
+  geom_hline(yintercept = 0.5, linetype = 2) 
+
+#Changing to a small multiple - adding a reference line to make them comparable
+ggplot(economics_long, aes(date, value01)) +
+  geom_line(colour=main2_color) + 
+  facet_wrap(~variable, ncol=4) +
+  geom_smooth(se=FALSE, colour= main1_color, size=0.5)
+
+#3 If we want to see the exact movements how the y values changes 
+
+#Check the data 
+names(economics)
+head(economics, n=10)
+str(economics)
+summary(economics)
+
+#Filtering the data set 
+recent <- economics[economics$date > as.Date("2013-01-01"), ]
+
+#The normal line chart 
+ggplot(recent, aes(date, unemploy)) + geom_line()
+
+#Group element in line and other charts 
+
+#Problem with line charts 
+
+#Check the data 
+names(Oxboys)
+head(Oxboys, n=10)
+str(Oxboys)
+summary(Oxboys)
+
+# A single line tries to connect all the observations 
+h<- ggplot(Oxboys, aes(age, height)) 
+h + geom_line() 
+
+#Grouping the observation by the variables subject
+h1 <- ggplot(Oxboys, aes(age, height, group=Subject))
+h1 + geom_line()
+
+#Introducing the smooth element 
+
+# Using the group aesthetic with both geom_line() and geom_smooth()
+# groups the data the same way for both layers
+h1 + geom_line() + 
+     geom_smooth(aes(), colour = trend_color, size = 0.5, method = "lm", se = FALSE)
+
+# Changing the group aesthetic for the smoother layer
+# fits a single line of best fit across all boys
+h1 + geom_line() +
+     geom_smooth(aes(group = 1), colour = trend_color, size = 3, method = "lm", se = TRUE)
+
+# Adding a confidence intervall
+h1 + geom_line() +
+  geom_smooth(aes(group = 1), colour = trend_color, size = 0.5, method = "lm", se = TRUE)
+
+# Now we combine a box-plot with the line chart 
+h2 <- ggplot(Oxboys, aes(Occasion, height))
+h2 + geom_boxplot() + geom_line()
+
+# We can add the a line chart again for all the subjects  
+h2 + geom_boxplot() + geom_line(aes(group = Subject), size=0.3, colour=trend_color)
+
+# We can add the a line chart grouped 
+h2 + geom_boxplot() + geom_smooth(aes(group = 1), method = "lm", se = FALSE, colour=trend_color)
+
+# Creating a visual analytical story 
+names(gapminder)
+head(gapminder, n=10)
+str(gapminder)
+summary(gapminder)
+
+#General trend in life expectancy
+ggplot(gapminder) +
+  geom_line(aes (year, lifeExp, group = country), lwd = 0.3, show.legend = FALSE, colour = main2_color) +
+  labs(title = "Life expectancy has increased worldwide") 
+
+#Checking on continents 
+ggplot(gapminder) +
+  geom_line(aes (year, lifeExp, group = country, color= continent), lwd = 0.3, show.legend = TRUE) +
+  scale_color_manual(values=c("#478adb", "#cccccc", "#f20675", "#bcc048", "#1ce3cd")) + 
+  labs(title = "Life expectancy has increased worldwide") 
+
+#Introducing a small multiple to better distinguish between continents 
+ggplot() +
+  geom_line(data=gapminder, aes (year, lifeExp, group = country), lwd = 0.3, show.legend = FALSE, color= main2_color) + 
+  facet_wrap(~ continent, ncol=5, strip.position = "bottom") +
+  scale_color_manual(values=c("#478adb", "#cccccc", "#f20675", "#bcc048", "#1ce3cd")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Life expectancy by continent")
+
+# Zooming in to see only Europe 
+ggplot(subset(gapminder, continent ==  "Europe")) +
+  geom_line(aes(year, lifeExp, group = country), color= main2_color, show.legend = FALSE) +
+  labs(title = "Life expectancy in Europe - detecting an outlier") 
+
+# Select only Europe in order to understand which country is the outlier
+europe <- dplyr::filter(gapminder, continent == "Europe")
+
+ggplot(europe, aes(year, lifeExp)) +
+  geom_line(color=main2_color) +
+  facet_wrap(~country) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Changes in Life Expectancy by country in europe") 
+
+#We can also show the trend as dots 
+ggplot(europe, aes(year, lifeExp)) +
+  geom_point(color="grey", size=2) +
+  facet_wrap(~country) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Changes in Life Expectancy by country in europe") 
+
+#Coming back to the general checking on patterns globally 
+
+#What will be the output of this code?
+
+#Adding a trend line - defining the method as loss 
+ggplot() +
+  geom_line(data=gapminder, aes (year, lifeExp, group = country), lwd = 0.3, show.legend = FALSE, color= decoration_color) + 
+  facet_wrap(~ continent, ncol=5, strip.position = "bottom") +
+  geom_smooth(data=gapminder, aes(year, lifeExp, group = 1), lwd = 1, method = 'loess', span = 2, se = TRUE, color = trend_color) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Life expectancy by continent including trendline")
+
+#We can even add all data in the background by setting the variable we do the facet with to zero 
+ggplot() +
+  geom_line(data = transform(gapminder, continent = NULL), aes (year, lifeExp, group = country), alpha = 0.5, lwd = 0.1, colour = "white") +
+  geom_line(data=gapminder, aes (year, lifeExp, group = country), lwd = 0.3, show.legend = FALSE, color= main2_color) +
+  geom_smooth(data=gapminder, aes(year, lifeExp, group = 1), lwd = 1, method = 'loess', span = 0.1, se = TRUE, color = trend_color) + 
+  facet_wrap(~ continent, ncol=5, strip.position = "bottom") + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  theme(axis.text.x = element_blank()) +
+  labs(title = "Life expectancy by continent including trendline, showing all data in the back") 
+
+#Now we could filter again on Europe and have far more context 
+ggplot() +
+  geom_line(data = transform(gapminder, continent = NULL), aes (year, lifeExp, group = country), alpha = 0.5, lwd = 0.1, colour = "white") +
+  geom_line(data=europe, aes (year, lifeExp, group = country), lwd = 0.3, show.legend = FALSE, color= main2_color) +
+  geom_smooth(data=europe, aes(year, lifeExp, group = 1), lwd = 1, method = 'loess', span = 0.1, se = TRUE, color = trend_color) +
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Life expectancy by country in europe, including a trend line and showing all data in the back") 
+
+#Showing how to add a line by aggregating the data 
+
+#Aggregating the data 
+gapminderavg<-aggregate(. ~year, data=gapminder, mean, na.rm=TRUE)
+head(gapminderavg, n=10)
+
+#Make a plot with the aggregated data 
+ggplot(gapminderavg) +
+  geom_line(aes (year, lifeExp), lwd = 0.3, show.legend = FALSE, color = trend_color) +
+  labs(title = "Total") 
+
+#Adding this line to the general plot by using twice the geom_line with different data sets  
+ggplot() +
+  geom_line(data=gapminderavg, aes (year, lifeExp), lwd = 2, show.legend = FALSE, color = trend_color) +
+  geom_line(data=gapminder, aes (year, lifeExp, group = country), lwd = 0.3, show.legend = FALSE, color = "white") +
+  labs(title = "Total vs. all countries") 
